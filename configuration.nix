@@ -14,6 +14,7 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelParams = [ "usbcore.autosuspend=-1" ];
 
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -85,11 +86,15 @@
     description = "Angelo";
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
-      keepassxc
+      calibre
       firefox
       git
-      vscode
+      guake
+      hledger
+      keepassxc
+      pandoc
       vim
+      vscode
     #  thunderbird
     ];
   };
@@ -112,6 +117,7 @@
   environment.systemPackages = with pkgs; [
     pkgs.sway
     bemenu
+    telegram-desktop
   
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   #  wget
@@ -137,6 +143,35 @@
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
+  services.blocky = {
+    enable = true;
+    settings = {
+      port = 53; # Port for incoming DNS Queries.
+      upstream.default = [
+        "https://one.one.one.one/dns-query" # Using Cloudflare's DNS over HTTPS server for resolving queries.
+      ];
+      # For initially solving DoH/DoT Requests when no system Resolver is available.
+      bootstrap.Dns = {
+        upstream = "https://one.one.one.one/dns-query";
+        ips = [ "1.1.1.1" "1.0.0.1" ];
+      };
+      #Enable Blocking of certian domains.
+      blocking = {
+        blackLists = {
+          #Adblocking
+          ads = ["https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"];
+          #Another filter for blocking adult sites
+          adult = ["https://blocklistproject.github.io/Lists/porn.txt"];
+          #You can add additional categories
+      };
+      #Configure what block categories are used
+      clientGroupsBlock = {
+        default = [ "ads" ];
+        kids-ipad = ["ads" "adult"];
+      };
+    };
+  };
+};
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
